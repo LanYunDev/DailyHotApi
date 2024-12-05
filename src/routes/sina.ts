@@ -5,7 +5,7 @@ import { get } from "../utils/getData.js";
 
 export const handleRoute = async (c: ListContext, noCache: boolean) => {
   const type = c.req.query("type") || "1";
-  const { fromCache, data, updateTime } = await getList({ type }, noCache);
+  const listData = await getList({ type }, noCache);
   const routeData: RouterData = {
     name: "sina",
     title: "新浪网",
@@ -28,10 +28,8 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
       },
     },
     link: "https://sinanews.sina.cn/",
-    total: data?.length || 0,
-    updateTime,
-    fromCache,
-    data,
+    total: listData.data?.length || 0,
+    ...listData,
   };
   return routeData;
 };
@@ -42,17 +40,16 @@ const getList = async (options: Options, noCache: boolean) => {
   const result = await get({ url, noCache });
   const list = result.data.data.hotList;
   return {
-    fromCache: result.fromCache,
-    updateTime: result.updateTime,
+    ...result,
     data: list.map((v: RouterType["sina"]) => {
       const base = v.base;
       const info = v.info;
       return {
         id: base.base.uniqueId,
         title: info.title,
-        desc: null,
-        author: null,
-        timestamp: null,
+        desc: undefined,
+        author: undefined,
+        timestamp: undefined,
         hot: parseChineseNumber(info.hotValue),
         url: base.base.url,
         mobileUrl: base.base.url,
